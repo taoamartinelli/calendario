@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendário 2026 — Feriados do Brasil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-2: #243044;
+      --text: #e8edf4;
+      --muted: #8b9cb3;
+      --accent: #3b82f6;
+      --holiday: #ef4444;
+      --holiday-bg: rgba(239, 68, 68, 0.15);
+      --facultative: #f59e0b;
+      --facultative-bg: rgba(245, 158, 11, 0.12);
+      --weekend: rgba(139, 156, 179, 0.08);
+      --border: rgba(255, 255, 255, 0.06);
+      --today-ring: #22c55e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--muted);
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 1.5rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+    }
+
+    .legend-dot.national { background: var(--holiday); }
+    .legend-dot.facultative { background: var(--facultative); }
+    .legend-dot.weekend { background: var(--weekend); border: 1px solid var(--border); }
+
+    .months-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .month-card {
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .month-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .month-header {
+      padding: 0.85rem 1rem;
+      background: var(--surface-2);
+      font-weight: 600;
+      font-size: 1rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      padding: 0.5rem 0.35rem 0.25rem;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      padding: 0.25rem 0.35rem 0.65rem;
+    }
+
+    .day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 8px;
+      position: relative;
+      cursor: default;
+      min-height: 36px;
+    }
+
+    .day.empty { visibility: hidden; }
+
+    .day.weekend:not(.holiday):not(.facultative) {
+      background: var(--weekend);
+    }
+
+    .day.holiday {
+      background: var(--holiday-bg);
+      color: #fca5a5;
+      font-weight: 600;
+    }
+
+    .day.facultative {
+      background: var(--facultative-bg);
+      color: #fcd34d;
+      font-weight: 600;
+    }
+
+    .day.today {
+      outline: 2px solid var(--today-ring);
+      outline-offset: 1px;
+    }
+
+    .day[title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: var(--text);
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 400;
+      white-space: nowrap;
+      z-index: 10;
+      pointer-events: none;
+      border: 1px solid var(--border);
+      max-width: 220px;
+      white-space: normal;
+      text-align: center;
+    }
+
+    .list-section {
+      margin-top: 3rem;
+    }
+
+    .list-section h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .holiday-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .holiday-table th,
+    .holiday-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .holiday-table th {
+      background: var(--surface-2);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .holiday-table tr:last-child td { border-bottom: none; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .badge.national {
+      background: var(--holiday-bg);
+      color: #fca5a5;
+    }
+
+    .badge.facultative {
+      background: var(--facultative-bg);
+      color: #fcd34d;
+    }
+
+    footer {
+      margin-top: 2.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    footer a { color: var(--accent); }
+
+    @media print {
+      body { background: #fff; color: #111; }
+      .month-card { break-inside: avoid; border: 1px solid #ddd; }
+      .day.holiday { background: #fee2e2; color: #b91c1c; }
+      .day.facultative { background: #fef3c7; color: #b45309; }
+      .day[title]:hover::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Calendário 2026</h1>
+      <p>Feriados nacionais e pontos facultativos — Brasil (Portaria MGI nº 11.460/2025)</p>
+    </header>
+
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot national"></span> Feriado nacional</span>
+      <span class="legend-item"><span class="legend-dot facultative"></span> Ponto facultativo</span>
+      <span class="legend-item"><span class="legend-dot weekend"></span> Fim de semana</span>
+    </div>
+
+    <div class="months-grid" id="calendar"></div>
+
+    <section class="list-section">
+      <h2>Lista completa de feriados e pontos facultativos</h2>
+      <table class="holiday-table" id="holiday-list">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Dia</th>
+            <th>Descrição</th>
+            <th>Tipo</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p>Fonte: <a href="https://www.gov.br/gestao/pt-br/assuntos/noticias/2025/dezembro/confira-o-calendario-oficial-de-feriados-nacionais-e-pontos-facultativos-em-2026" target="_blank" rel="noopener">Ministério da Gestão e da Inovação em Serviços Públicos</a></p>
+    </footer>
+  </div>
+
+  <script>
+    const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    const WEEKDAYS_FULL = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+    const MONTHS = [
+      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+
+    const HOLIDAYS = [
+      { date: "2026-01-01", name: "Confraternização Universal", type: "national" },
+      { date: "2026-02-16", name: "Carnaval", type: "facultative" },
+      { date: "2026-02-17", name: "Carnaval", type: "facultative" },
+      { date: "2026-02-18", name: "Quarta-feira de Cinzas (até 14h)", type: "facultative" },
+      { date: "2026-04-03", name: "Paixão de Cristo", type: "national" },
+      { date: "2026-04-20", name: "Ponto facultativo", type: "facultative" },
+      { date: "2026-04-21", name: "Tiradentes", type: "national" },
+      { date: "2026-05-01", name: "Dia Mundial do Trabalho", type: "national" },
+      { date: "2026-06-04", name: "Corpus Christi", type: "facultative" },
+      { date: "2026-06-05", name: "Ponto facultativo", type: "facultative" },
+      { date: "2026-09-07", name: "Independência do Brasil", type: "national" },
+      { date: "2026-10-12", name: "Nossa Senhora Aparecida", type: "national" },
+      { date: "2026-10-28", name: "Dia do Servidor Público federal", type: "facultative" },
+      { date: "2026-11-02", name: "Finados", type: "national" },
+      { date: "2026-11-15", name: "Proclamação da República", type: "national" },
+      { date: "2026-11-20", name: "Dia Nacional de Zumbi e da Consciência Negra", type: "national" },
+      { date: "2026-12-24", name: "Véspera de Natal (após 13h)", type: "facultative" },
+      { date: "2026-12-25", name: "Natal", type: "national" },
+      { date: "2026-12-31", name: "Véspera de Ano Novo (após 13h)", type: "facultative" },
+    ];
+
+    const holidayMap = Object.fromEntries(
+      HOLIDAYS.map(h => [h.date, h])
+    );
+
+    function formatDateKey(year, month, day) {
+      const m = String(month + 1).padStart(2, "0");
+      const d = String(day).padStart(2, "0");
+      return `${year}-${m}-${d}`;
+    }
+
+    function formatDisplayDate(dateStr) {
+      const [y, m, d] = dateStr.split("-").map(Number);
+      return `${d} de ${MONTHS[m - 1].toLowerCase()} de ${y}`;
+    }
+
+    function renderCalendar() {
+      const container = document.getElementById("calendar");
+      const today = new Date();
+      const todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+      for (let month = 0; month < 12; month++) {
+        const firstDay = new Date(2026, month, 1).getDay();
+        const daysInMonth = new Date(2026, month + 1, 0).getDate();
+
+        const card = document.createElement("article");
+        card.className = "month-card";
+        card.innerHTML = `
+          <div class="month-header">${MONTHS[month]} 2026</div>
+          <div class="weekdays">${WEEKDAYS.map(w => `<span>${w}</span>`).join("")}</div>
+          <div class="days"></div>
+        `;
+
+        const daysEl = card.querySelector(".days");
+
+        for (let i = 0; i < firstDay; i++) {
+          const empty = document.createElement("div");
+          empty.className = "day empty";
+          daysEl.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const key = formatDateKey(2026, month, day);
+          const date = new Date(2026, month, day);
+          const dow = date.getDay();
+          const holiday = holidayMap[key];
+
+          const cell = document.createElement("div");
+          cell.className = "day";
+          cell.textContent = day;
+
+          if (dow === 0 || dow === 6) cell.classList.add("weekend");
+          if (key === todayKey) cell.classList.add("today");
+
+          if (holiday) {
+            cell.classList.add(holiday.type);
+            cell.title = holiday.name;
+          }
+
+          daysEl.appendChild(cell);
+        }
+
+        container.appendChild(card);
+      }
+    }
+
+    function renderList() {
+      const tbody = document.querySelector("#holiday-list tbody");
+      HOLIDAYS.forEach(h => {
+        const [y, m, d] = h.date.split("-").map(Number);
+        const dow = new Date(y, m - 1, d).getDay();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${formatDisplayDate(h.date)}</td>
+          <td>${WEEKDAYS_FULL[dow]}</td>
+          <td>${h.name}</td>
+          <td><span class="badge ${h.type}">${h.type === "national" ? "Nacional" : "Facultativo"}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    renderCalendar();
+    renderList();
+  </script>
+</body>
+</html>
